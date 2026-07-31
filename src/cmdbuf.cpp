@@ -252,7 +252,8 @@ int Host1xCmdbuf::begin(EnvideoEngine engine) {
     auto class_id = engine_to_host1x_class_id(engine);
 
 #ifndef CONFIG_TEGRA_DRM
-    this->cmdbufs    .emplace_back(this->map->handle, this->num_words() * sizeof(std::uint32_t));
+    this->cmdbufs    .emplace_back(this->map->handle,
+        this->mem_offset + this->num_words() * sizeof(std::uint32_t));
     this->cmdbuf_exts.emplace_back(-1);
     this->class_ids  .emplace_back(class_id);
 #else
@@ -312,7 +313,8 @@ int Host1xCmdbuf::push_reloc(std::uint32_t offset, const envid::Map *target, std
         ENVID_CHECK(this->push_value(offset, 0xdeadbeef));
 
         this->relocs.emplace_back(this->map->handle,
-            (this->num_words() - 1) * sizeof(std::uint32_t), target->handle, target_offset);
+            this->mem_offset + (this->num_words() - 1) * sizeof(std::uint32_t),
+            target->handle, target_offset);
 
         this->reloc_types .emplace_back(type);
         this->reloc_shifts.emplace_back(shift);
