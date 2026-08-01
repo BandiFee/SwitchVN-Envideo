@@ -357,6 +357,11 @@ int Channel::set_clock_rate(std::uint32_t clock) {
         return ENVIDEO_RC_SYSTEM(EINVAL);
 
 #if defined(__linux__)
+    // On newer kernels DFS is performed by the KMD
+    auto &d = *reinterpret_cast<Device *>(this->device);
+    if (d.has_tegra_drm)
+        return 0;
+
     auto args = nvhost_clk_rate_args{
         .rate     = clock,
         .moduleid = this->module_id,
