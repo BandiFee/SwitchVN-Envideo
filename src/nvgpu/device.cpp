@@ -531,7 +531,7 @@ int Device::initialize() {
     this->host1x_version = get_host1x_version(this->chip_id);
 
     this->bl_kind      = get_block_linear_kind(this->chip_id);
-    this->tegra_layout = this->nvdec_version <= NvdecVersion::V20;
+    this->tegra_layout = true;
 
 #if defined (__linux__)
     ENVID_CHECK_ERRNO(this->nvmap_fd      = ::open("/dev/nvmap",           O_RDWR | O_SYNC | O_CLOEXEC));
