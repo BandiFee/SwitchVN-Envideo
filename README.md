@@ -1,4 +1,8 @@
 # Envideo
+
+> [!NOTE]
+> This repository carries SwitchVN-maintained fixes for Envideo. The `envideo` project, library, API, and pkg-config names remain unchanged; SwitchVN identifies the maintained build rather than a separate API.
+
 Envideo is a support library designed for low-level interaction with Nvidia's multimedia engines, including NVDEC, NVENC, and OFA. Its primary objective is to provide a unified interface across different platforms (Linux, Horizon OS) and hardware types (discrete and integrated GPUs), enabling the development of high-performance, cross-platform hardware acceleration code.  
 The library offers a set of primitives reminiscent of Vulkan objects—such as devices, channels, buffers, fences, and command buffers—that facilitate communication and synchronization with the underlying hardware. It serves as an abstraction layer, handling OS-specific and kernel driver complexities, as well as hardware variations such as host engines.  
 In addition, it includes a few helpful utilities such as constraint checking, dynamic frequency scaling routines, or hardware-accelerated data transfer via copy engines.  
