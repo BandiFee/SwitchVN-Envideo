@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'switchvn-*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to publish the release under'
+        required: true
+
+env:
+  ASSET: switchvn-envideo-aarch64.tar.gz
+
+jobs:
+  build:
+    # Matches the Switch's Ubuntu 24.04 userspace, so the binaries link against
+    # the same glibc the target has.
+    runs-on: ubuntu-24.04-arm
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # src/nvidia/open-gpu-kernel-modules is a nested submodule; without it
+          # meson fails at configure time on a missing include directory.
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y meson ninja-build cmake pkg-config g++
+
+      - name: Configure
+        # tegra-drm must stay off: switchroot's L4T kernel has no Tegra DRM
+        # channel/submit UAPI, and every submission comes back ENOTTY with it on.
+        run: |
+          meson setup build \
+            -Dnvgpu=enabled \
+            -Dtegra-drm=false \
+            --prefix=/usr/local \
+            --libdir=lib \
+            --buildtype=release
+
+      - name: Build
+        run: meson compile -C build
+
+      - name: Stage install tree
+        run: |
+          meson install -C build --destdir "$GITHUB_WORKSPACE/stage"
+          find stage -type f | sort
+
+      - name: Package
+        run: tar -czf "$ASSET" -C stage/usr/local .
+
+      - name: Publish release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          gh release view "$TAG" >/dev/null 2>&1 \
+            || gh release create "$TAG" --title "$TAG" --notes "envideo for SwitchVN"
+          gh release upload "$TAG" "$ASSET" --clobber
