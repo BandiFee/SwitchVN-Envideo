@@ -75,3 +75,18 @@ jobs:
           gh release view "$TAG" >/dev/null 2>&1 \
             || gh release create "$TAG" --title "$TAG" --notes "envideo for SwitchVN"
           gh release upload "$TAG" "$ASSET" --clobber
+
+      - name: Verify the asset is actually published
+        # A release lives on its tag, so anything that removes the tag removes
+        # the release with it -- and gh release upload can then no-op without a
+        # non-zero exit, leaving a green build and nothing to download. Read the
+        # asset list back and fail if it is not there.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          names=$(gh release view "$TAG" --repo "${{ github.repository }}" \
+            --json assets --jq '.assets[].name')
+          echo "$names"
+          printf '%s\n' "$names" | grep -qx 'switchvn-envideo-aarch64.tar.gz' \
+            || { echo "::error::switchvn-envideo-aarch64.tar.gz is not attached to release $TAG"; exit 1; }
