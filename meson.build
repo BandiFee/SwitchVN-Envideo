@@ -11,7 +11,11 @@ project('envideo', ['c', 'cpp'],
     ],
     meson_version: '>=0.57.0',
     license: 'GPLv2+',
-    version: '1.0.0',
+    # Trailing number is the SwitchVN revision of upstream's 1.0.0. It reaches
+    # envideo.pc through pkgconfig.generate() below, and FFmpeg's configure
+    # asks for "envideo >= 1.0.0" -- pkg-config compares segment by segment, so
+    # an extra trailing segment still satisfies that.
+    version: '1.0.0-1',
 )
 
 lib_src  = []
