@@ -327,6 +327,7 @@ int Host1xCmdbuf::push_reloc(std::uint32_t offset, const envid::Map *target, std
 
         this->bufs.emplace_back(drm_tegra_submit_buf{
             .mapping                 = static_cast<std::uint32_t>(id),
+            .flags                   = static_cast<std::uint32_t>(reloc_type == EnvideoRelocType_Tiled ? DRM_TEGRA_SUBMIT_RELOC_SECTOR_LAYOUT : 0),
             .reloc = {
                 .target_offset       = target_offset,
                 .gather_offset_words = static_cast<std::uint32_t>(this->num_words() - 1),

@@ -462,7 +462,7 @@ int envideo_dfs_commit(EnvideoChannel *channel) {
     double frame_time = 1.0e6 / channel->dfs_framerate;
 
     int rc = 0;
-    if ((wl_dt / channel->dfs_num_samples < 1.5 * frame_time) ||
+    if ((wl_dt / static_cast<double>(channel->dfs_num_samples) < 1.5 * frame_time) ||
             (channel->dfs_last_ts_delta && (wl_dt < 1.5 * channel->dfs_last_ts_delta))) {
         auto avg   = channel->dfs_bitrate_sum * 1e6 / wl_dt;
         auto clock = channel->dfs_decode_cycles_ema * avg * 1.2;

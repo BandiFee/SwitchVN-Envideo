@@ -531,7 +531,7 @@ int Device::initialize() {
     this->host1x_version = get_host1x_version(this->chip_id);
 
     this->bl_kind      = get_block_linear_kind(this->chip_id);
-    this->tegra_layout = this->nvdec_version <= NvdecVersion::V20;
+    this->tegra_layout = true;
 
 #if defined (__linux__)
     ENVID_CHECK_ERRNO(this->nvmap_fd      = ::open("/dev/nvmap",           O_RDWR | O_SYNC | O_CLOEXEC));
@@ -601,18 +601,22 @@ int Device::wait(envid::Fence fence, std::uint64_t timeout_us) {
 
 #if defined(__linux__)
 #ifndef CONFIG_TEGRA_DRM
-    auto args = nvhost_ctrl_syncpt_waitex_args {
+    auto args = nvhost_ctrl_syncpt_waitex_args{
         .id      = id,
         .thresh  = value,
         .timeout = static_cast<std::int32_t>(timeout_us),
     };
     ENVID_CHECK_ERRNO(::ioctl(this->nvhost_fd, NVHOST_IOCTL_CTRL_SYNCPT_WAITEX, &args));
 #else
-    auto now = std::chrono::steady_clock::now();
-    auto ts  = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch());
+    std::int64_t t = INT64_MAX;
+    if (timeout_us != UINT64_MAX) {
+        auto now = std::chrono::steady_clock::now();
+        t = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count() +
+            static_cast<std::int64_t>(timeout_us) * 1000;
+    }
 
     auto args = drm_tegra_syncpoint_wait{
-        .timeout_ns = ts.count() + static_cast<std::int64_t>(timeout_us) * 1000,
+        .timeout_ns = t,
         .id         = id,
         .threshold  = value,
     };
