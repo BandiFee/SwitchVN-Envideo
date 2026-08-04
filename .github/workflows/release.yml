@@ -53,6 +53,17 @@ jobs:
           meson install -C build --destdir "$GITHUB_WORKSPACE/stage"
           find stage -type f | sort
 
+      - name: Stamp the build
+        # libenvideo.so has an unversioned SONAME, so the dynamic linker will
+        # happily load any copy into libavcodec no matter what it was compiled
+        # against, and a mismatch shows up as broken decoding rather than as a
+        # link error. Record which commit this is; SwitchVN-FFmpeg records the
+        # one it built against, and the installer compares the two.
+        run: |
+          mkdir -p stage/usr/local/share/switchvn
+          echo "${{ github.sha }}" > stage/usr/local/share/switchvn/envideo-commit
+          cat stage/usr/local/share/switchvn/envideo-commit
+
       - name: Package
         run: tar -czf "$ASSET" -C stage/usr/local .
 
